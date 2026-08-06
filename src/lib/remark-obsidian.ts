@@ -1,16 +1,18 @@
 /**
  * Remark/rehype plugins for Obsidian-flavored markdown.
  *
- * Converts three Obsidian-specific syntaxes to standard HTML at build time:
- * 1. Wiki links:   [[target]] or [[target|alias]]  → <a href="/blog/target/">
- * 2. Image embeds: ![[image.png]]                   → <img src="./image.png">
- * 3. Callouts:     > [!note] Title\n> body          → <div class="callout callout-note">
+ * Converts three Obsidian-specific syntaxes at build time:
+ * 1. Wiki links:   [[target]] or [[target|alias]]  →  [alias](/blog/target/)
+ * 2. Image embeds: ![[image.png]]                   →  ![image.png](./image.png)
+ * 3. Callouts:     > [!note] Title\n> body          →  <div class="callout callout-note">
  *
- * Unknown wiki-link targets get class "wiki-link-future" so CSS can dash-underline them.
+ * Strategy for (1) and (2): rewrite text to standard markdown inside the
+ * existing Text node. No AST manipulation. The markdown parser then does
+ * the rest natively — zero risk of malformed nodes.
  */
 
 import { visit } from "unist-util-visit";
-import type { Root, Text, Link, Image } from "mdast";
+import type { Root, Text } from "mdast";
 import type { Element, Text as HastText } from "hast";
 import type { Plugin } from "unified";
 
@@ -36,134 +38,66 @@ export function slugify(name: string): string {
     .replace(/-+/g, "-");
 }
 
-const WIKI_LINK_RE = /\[\[([^\]]+)\]\]/g;
-
-function parseWikiLink(raw: string): { target: string; alias: string } | null {
-  WIKI_LINK_RE.lastIndex = 0;
-  const m = WIKI_LINK_RE.exec(raw);
-  if (!m) return null;
-  const inner = m[1];
-  const parts = inner.split("|");
-  const target = parts[0].split("#")[0].trim(); // strip heading anchor
-  const alias = (parts[1] ?? parts[0]).trim();
-  return { target, alias };
-}
-
 // ---------------------------------------------------------------------------
 // 1. Wiki links  [[page]]  /  [[page|text]]
+//
+// Rewrite text in-place:
+//   "See [[my note]] for details"  →  "See [my note](/blog/my-note/) for details"
+//   "See [[my note|here]]"         →  "See [here](/blog/my-note/)"
 // ---------------------------------------------------------------------------
 
-interface WikiLinkOpts {
-  knownSlugs: Set<string>;
-}
+const WIKI_LINK_RE = /\[\[([^\]]+)\]\]/g;
 
-export function remarkObsidianLinks(
-  opts: WikiLinkOpts,
-): Plugin<[], Root> {
-  return () => (tree, file) => {
-    visit(tree, "text", (node: Text, idx, parent) => {
-      if (!parent || typeof idx !== "number") return;
+export function remarkObsidianLinks(): Plugin<[], Root> {
+  return () => (tree) => {
+    visit(tree, "text", (node: Text) => {
+      node.value = node.value.replace(
+        WIKI_LINK_RE,
+        (_full: string, inner: string) => {
+          const parts = inner.split("|");
+          const target = parts[0].split("#")[0].trim(); // strip heading anchor
+          const alias = (parts[1] ?? parts[0]).trim();
+          const targetSlug = slugify(target);
 
-      const matches = [...node.value.matchAll(WIKI_LINK_RE)];
-      if (matches.length === 0) return;
-
-      const replacements: (Link | Text)[] = [];
-      let cursor = 0;
-
-      for (const match of matches) {
-        // Text before this match
-        if (match.index! > cursor) {
-          replacements.push({
-            type: "text",
-            value: node.value.slice(cursor, match.index),
-          } as Text);
-        }
-
-        const { target, alias } = parseWikiLink(match[0])!;
-        const targetSlug = slugify(target);
-        const known = opts.knownSlugs.has(targetSlug);
-
-        replacements.push({
-          type: "link",
-          url: `/blog/${targetSlug}/`,
-          title: null,
-          children: [{ type: "text", value: alias }],
-          data: {
-            hProperties: known
-              ? { class: "wiki-link" }
-              : { class: "wiki-link wiki-link-future" },
-          },
-        } as unknown as Link);
-
-        cursor = match.index! + match[0].length;
-      }
-
-      // Trailing text
-      if (cursor < node.value.length) {
-        replacements.push({
-          type: "text",
-          value: node.value.slice(cursor),
-        } as Text);
-      }
-
-      parent.children.splice(idx, 1, ...replacements);
+          return `[${alias}](/blog/${targetSlug}/)`;
+        },
+      );
     });
   };
 }
 
 // ---------------------------------------------------------------------------
 // 2. Image embeds  ![[image.png]]
+//
+// Rewrite text in-place:
+//   "![[screenshot.png]]"  →  "![screenshot.png](./screenshot.png)"
 // ---------------------------------------------------------------------------
+
+const IMAGE_EMBED_RE = /!\[\[([^\]]+)\]\]/g;
 
 export function remarkObsidianImages(): Plugin<[], Root> {
   return () => (tree, file) => {
     const slug = slugFromPath(file.path);
 
-    visit(tree, "text", (node: Text, idx, parent) => {
-      if (!parent || typeof idx !== "number") return;
-
-      const imageRe = /!\[\[([^\]]+)\]\]/g;
-      const matches = [...node.value.matchAll(imageRe)];
-      if (matches.length === 0) return;
-
-      const replacements: (Image | Text)[] = [];
-      let cursor = 0;
-
-      for (const match of matches) {
-        if (match.index! > cursor) {
-          replacements.push({
-            type: "text",
-            value: node.value.slice(cursor, match.index),
-          } as Text);
-        }
-
-        const filename = match[1].trim();
-        const src = slug ? `./${filename}` : filename;
-
-        replacements.push({
-          type: "image",
-          url: src,
-          title: filename,
-          alt: filename,
-        } as Image);
-
-        cursor = match.index! + match[0].length;
-      }
-
-      if (cursor < node.value.length) {
-        replacements.push({
-          type: "text",
-          value: node.value.slice(cursor),
-        } as Text);
-      }
-
-      parent.children.splice(idx, 1, ...replacements);
+    visit(tree, "text", (node: Text) => {
+      node.value = node.value.replace(
+        IMAGE_EMBED_RE,
+        (_full: string, filename: string) => {
+          const f = filename.trim();
+          const src = slug ? `./${f}` : f;
+          return `![${f}](${src})`;
+        },
+      );
     });
   };
 }
 
 // ---------------------------------------------------------------------------
 // 3. Callouts  > [!note] Title  →  <div class="callout callout-note">…
+//
+// This is a rehype plugin (runs on the HTML AST, not markdown AST).
+// It transforms blockquote elements whose first paragraph starts with [!type]
+// into styled div.callout containers.
 // ---------------------------------------------------------------------------
 
 const CALLOUT_TYPES = new Set([
@@ -214,7 +148,7 @@ export function rehypeObsidianCallouts(): Plugin<[], Root> {
         children: [],
       };
 
-      // Add title paragraph if there's a title
+      // Add title paragraph
       if (title) {
         calloutDiv.children.push({
           type: "element",
@@ -228,7 +162,7 @@ export function rehypeObsidianCallouts(): Plugin<[], Root> {
       calloutDiv.children.push(...node.children);
 
       // Replace the blockquote with our callout div
-      parent.children.splice(idx, 1, calloutDiv);
+      (parent as Element).children.splice(idx, 1, calloutDiv);
     });
   };
 }
