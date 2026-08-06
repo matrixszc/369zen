@@ -1,25 +1,22 @@
 ---
+import Hero from "../components/Hero.astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Projects from "../components/Projects.astro";
 ---
 
 <html lang="zh-CN">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>369Zen - 数字禅</title>
-    <meta 
-      name="description" 
-      content="数字禅 - AI、效率工具、个人成长与数字生活"
-    />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+    <title>369 Zen</title>
   </head>
 
   <body>
-    <main>
-      <h1>369Zen</h1>
-      <p>数字禅 · Digital Zen</p>
-
-      <p>
-        AI · Life OS · 数字工具 · 个人成长
-      </p>
-    </main>
+    <BaseLayout title="369 Zen">
+  <main>
+    <Hero />
+    <Projects />
+  </main>
+</BaseLayout>
   </body>
 </html>

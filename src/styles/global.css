@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+* {
+  box-sizing:border-box;
+}
+
+
+html {
+
+font-family:
+-apple-system,
+BlinkMacSystemFont,
+"SF Pro Display",
+"PingFang SC",
+sans-serif;
+
+}
+
+
+body {
+
+margin:0;
+
+font-family:
+
+-apple-system,
+BlinkMacSystemFont,
+"SF Pro Display",
+"SF Pro Text",
+"PingFang SC",
+"Microsoft YaHei",
+sans-serif;
+
+
+color:var(--text-primary);
+
+
+background:
+var(--bg-primary);
+
+line-height:1.7;
+
+
+
+}
+
+
+a {
+
+transition:.3s;
+
+}
+
+
+section {
+
+width:100%;
+
+}
