@@ -1,0 +1,29 @@
+---
+import { getCollection } from "astro:content";
+import { getBacklinks } from "../lib/backlinks.ts";
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+const posts = await getCollection("blog");
+const links = getBacklinks(posts, slug);
+---
+
+{links.length > 0 && (
+  <section class="mt-16 pt-8 border-t border-line">
+    <h2 class="text-lg font-semibold text-ink-2">
+      被以下文章引用
+    </h2>
+    <ul class="mt-4 space-y-2">
+      {links.map((link) => (
+        <li>
+          <a href={link.href} class="text-ink hover:underline">
+            {link.title}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}

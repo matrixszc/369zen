@@ -2,14 +2,59 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="About | 369 Zen">
+<BaseLayout
+  title="About | 369 Zen"
+  description="关于我和数字禅项目"
+>
   <main class="max-w-3xl mx-auto px-6 py-16">
     <h1 class="text-4xl font-bold">
       About
     </h1>
 
-    <p class="mt-6 text-gray-600">
-      369 Zen 是一个专注于 AI、数字生活、效率工具和个人成长的长期项目。
+    <p class="mt-6 text-ink-2 leading-relaxed">
+      369 Zen（数字禅）是一个专注于 AI、数字生活、效率工具和个人成长的长期项目。
     </p>
+
+    <p class="mt-4 text-ink-2 leading-relaxed">
+      这里记录我在技术与生活交叉点的思考：如何用工程化思维打造个人系统，如何让 AI
+      成为日常工作的伙伴，以及如何在这个信息过载的时代保持专注与清醒。
+    </p>
+
+    <!-- 社交媒体 -->
+    <section class="mt-16">
+      <h2 class="text-2xl font-bold">
+        在这些地方找到我
+      </h2>
+
+      <div class="mt-6 grid grid-cols-2 gap-4">
+        <a
+          href="#"
+          class="rounded-xl border border-line p-4 hover:bg-surface-2 transition text-center"
+        >
+          <span class="font-medium">小红书</span>
+        </a>
+
+        <a
+          href="#"
+          class="rounded-xl border border-line p-4 hover:bg-surface-2 transition text-center"
+        >
+          <span class="font-medium">抖音</span>
+        </a>
+
+        <a
+          href="#"
+          class="rounded-xl border border-line p-4 hover:bg-surface-2 transition text-center"
+        >
+          <span class="font-medium">微信公众号</span>
+        </a>
+
+        <a
+          href="#"
+          class="rounded-xl border border-line p-4 hover:bg-surface-2 transition text-center"
+        >
+          <span class="font-medium">YouTube</span>
+        </a>
+      </div>
+    </section>
   </main>
 </BaseLayout>

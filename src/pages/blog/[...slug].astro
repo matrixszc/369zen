@@ -1,9 +1,12 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection, render } from "astro:content";
+import Backlinks from "../../components/Backlinks.astro";
 
 export async function getStaticPaths() {
-  const posts = await getCollection("blog");
+  const posts = await getCollection("blog", ({ data }) => {
+    return !data.draft || import.meta.env.DEV;
+  });
 
   return posts.map((post) => ({
     params: {
@@ -16,22 +19,56 @@ export async function getStaticPaths() {
 }
 
 const { post } = Astro.props;
-
 const { Content } = await render(post);
+
+// CJK-aware reading time
+const body = post.body ?? "";
+const cjkChars = (body.match(/[一-龥]/g) ?? []).length;
+const latinWords = body
+  .replace(/[一-龥]/g, " ")
+  .split(/\s+/)
+  .filter(Boolean).length;
+const minutes = Math.max(1, Math.round(cjkChars / 400 + latinWords / 200));
 ---
 
-<BaseLayout title={post.data.title}>
+<BaseLayout
+  title={`${post.data.title} | 369 Zen`}
+  description={post.data.description}
+>
   <main class="max-w-3xl mx-auto px-6 py-16">
     <h1 class="text-4xl font-bold">
       {post.data.title}
     </h1>
 
-    <p class="mt-3 text-gray-500">
-      {post.data.pubDate.toLocaleDateString("zh-CN")}
+    <p class="mt-3 text-ink-muted text-sm">
+      {post.data.pubDate.toLocaleDateString("zh-CN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })}
+      <span class="mx-2">·</span>
+      约 {minutes} 分钟
     </p>
+
+    {
+      post.data.tags && post.data.tags.length > 0 && (
+        <div class="mt-4 flex flex-wrap gap-2">
+          {post.data.tags.map((tag) => (
+            <a
+              href={`/tags/${encodeURIComponent(tag)}/`}
+              class="rounded-full bg-surface-2 px-3 py-1 text-sm text-ink-2 hover:text-ink transition"
+            >
+              #{tag}
+            </a>
+          ))}
+        </div>
+      )
+    }
 
     <article class="prose max-w-none mt-10">
       <Content />
     </article>
+
+    <Backlinks slug={post.id} />
   </main>
 </BaseLayout>

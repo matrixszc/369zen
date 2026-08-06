@@ -1,59 +1,75 @@
+@import "./variables.css";
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme inline {
+  --color-surface: var(--bg-primary);
+  --color-surface-2: var(--bg-secondary);
+  --color-ink: var(--text-primary);
+  --color-ink-2: var(--text-secondary);
+  --color-ink-muted: var(--text-muted);
+  --color-line: var(--border-light);
+  --color-accent: var(--accent);
+  --color-card: var(--card-bg);
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
+    sans-serif;
+}
 
 * {
-  box-sizing:border-box;
+  box-sizing: border-box;
 }
-
 
 html {
-
-font-family:
--apple-system,
-BlinkMacSystemFont,
-"SF Pro Display",
-"PingFang SC",
-sans-serif;
-
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
+    sans-serif;
 }
-
 
 body {
-
-margin:0;
-
-font-family:
-
--apple-system,
-BlinkMacSystemFont,
-"SF Pro Display",
-"SF Pro Text",
-"PingFang SC",
-"Microsoft YaHei",
-sans-serif;
-
-
-color:var(--text-primary);
-
-
-background:
-var(--bg-primary);
-
-line-height:1.7;
-
-
-
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  line-height: 1.7;
 }
-
 
 a {
-
-transition:.3s;
-
+  transition: 0.3s;
 }
 
-
 section {
+  width: 100%;
+}
 
-width:100%;
+/* Prose 排版跟随设计 token */
+.prose {
+  --tw-prose-body: var(--text-primary);
+  --tw-prose-headings: var(--text-primary);
+  --tw-prose-links: var(--accent);
+  --tw-prose-bold: var(--text-primary);
+  --tw-prose-quotes: var(--text-primary);
+  --tw-prose-quote-borders: var(--border-light);
+  --tw-prose-code: var(--text-primary);
+  --tw-prose-hr: var(--border-light);
+  --tw-prose-th-borders: var(--border-light);
+  --tw-prose-td-borders: var(--border-light);
+}
 
+/* Obsidian 语法样式（后续步骤用） */
+.wiki-link-future {
+  opacity: 0.65;
+  text-decoration-style: dashed;
+}
+
+.callout {
+  border-inline-start: 4px solid var(--accent);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.callout-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
 }

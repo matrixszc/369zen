@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://369zen.com/sitemap-index.xml
