@@ -26,6 +26,10 @@ pnpm-debug.log*
 # Obsidian
 /.obsidian/
 
+# Local content fallback — test / scratch notes
+src/content/blog/test/
+src/content/blog/test1/
+
 # Private notes
 /private/
 
