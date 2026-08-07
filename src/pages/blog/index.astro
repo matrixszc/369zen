@@ -1,13 +1,13 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { getCollection } from "astro:content";
+import { getPublishedPosts } from "../../lib/posts.ts";
 
-const posts = await getCollection("blog");
+const posts = await getPublishedPosts();
 ---
 
-<BaseLayout title="Blog | 369 Zen">
+<BaseLayout title="博客 | 数字禅">
   <main class="max-w-5xl mx-auto px-6 py-16">
-    <h1 class="text-4xl font-bold">Blog</h1>
+    <h1 class="text-4xl font-bold">博客</h1>
 
     <ul class="mt-10 space-y-6">
       {posts.map((post) => (

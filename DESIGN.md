@@ -1,6 +1,10 @@
 # 369 Zen — 设计决策记录
 
-> 2026-08-06 · 与 Claude Code 协作产出 · 39 项决策
+> 2026-08-06 · 39 项决策 · 最后更新 2026-08-07
+
+## 更新日志
+
+- **2026-08-07**：核心架构已变更 — 内容源从本地 git 仓库切换为 **iCloud Obsidian Vault**（含本地回退）。实现清单全部完成，移除旧的实现顺序章节。
 
 ---
 
@@ -23,7 +27,7 @@
 ## ✍️ 写作工作流
 
 ### 4. 编辑器与发布
-**决策：** 在 **Obsidian** 中撰写 → `git commit` → `git push main` → Cloudflare Pages 自动部署（纯静态 SSG）
+**决策：** 在 **Obsidian** 中写入 iCloud vault → `npm run deploy`（`astro build && wrangler pages deploy`）→ Cloudflare Pages。内容源文件不经过 git，不在 GitHub 上留痕。
 
 ### 5. 写作语法
 **决策：** 使用完整 **Obsidian 语法**，构建时通过 remark/rehype 插件转换为标准 HTML。用到：
@@ -33,17 +37,17 @@
 - 其他语法按需再加
 
 ### 6. 草稿机制
-**决策：** 使用 `draft: true` frontmatter 字段——本地 dev 可见，生产构建过滤掉。
+**决策：** 使用 `draft` frontmatter 字段。schema 兼容 Obsidian 的三种写法：checkbox 布尔值 `true/false`、文本属性字符串 `"True"/"False"`、不带引号的小写 `true/false`（大小写不敏感）。无 draft 字段时默认 `true`（草稿）。发布条件：`title` 存在 + `draft` 不是 `true`。`astro dev` 下草稿可见，生产构建隐藏。
 
 ### 7. 文章 slug
 **决策：** **纯英文** slug，URL 干净可读无乱码。
 
 ### 8. Obsidian Vault 与 Astro 仓库关系
-**决策：** Astro 项目目录 = Obsidian Vault。
-- `.obsidian/` → `.gitignore`
-- `private/` → `.gitignore`（私人笔记）
-- `node_modules/`、`.git/`、`dist/` → Obsidian 排除列表
-- 在 Obsidian 里打开项目文件夹，写博客，commit，push——零摩擦
+**决策：** 分离架构。Obsidian Vault 位于 iCloud（`~/Library/Mobile Documents/iCloud~md~obsidian/Documents/369zen`），Astro 项目是独立的本地 git 仓库。两者通过 glob loader 连接。
+- 内容（md + 图片）在 iCloud vault → 不进入 git，不泄露到 GitHub
+- Astro 项目代码（组件、布局、配置）→ git 正常管理
+- `content-images.ts` 集成在构建时把 vault 中的图片复制到 `dist/blog/`
+- 本地回退：iCloud 路径不可读时，自动使用 `src/content/blog/`（如 CI 环境）
 
 ### 9. 转换管道
 **决策：** **现在就搭好**（Wiki 链接 + Callout + 图片的转换），不在用到时打断写作心流。
@@ -59,21 +63,10 @@
 ## 📁 内容结构
 
 ### 12. 图片管理
-**决策：** **图片跟着文章走**，放在同一目录下。
+**决策：** 图片跟着文章走，放在 Obsidian vault 中同一目录下。构建时由 `content-images.ts` 集成在 `astro:build:done` 和开发服务器中间件中处理 — 从 vault 复制/代理到 `/blog/` 路径。图片不进入 git 仓库。
 
 ### 13. 文章目录结构
-**决策：**
-```
-src/content/blog/
-  hello-369zen/
-    index.md
-    hero.png
-    diagram.png
-  another-post/
-    index.md
-    screenshot.png
-```
-每篇文章一个文件夹，图片和文章天然绑定。content collection 的 glob 改为 `**/index.md`。
+**决策：** 扁平结构，所有文章为 vault 根目录下的 `{slug}.md` 文件。图片同目录存放。content collection 的 glob 为 `**/*.md`，通过 frontmatter（`title` + `draft`）筛选可发布文章。
 
 ### 14. Tag 体系
 **决策：** **少量顶层分类 + 自由标签**。
@@ -192,25 +185,23 @@ src/content/blog/
 
 ---
 
-## 实现顺序建议
+## 实现状态
 
-### 第一优先级（基础架构）
-1. 改造目录结构：文章从扁平 `.md` 改为文件夹 `{slug}/index.md`
-2. 配置 Tailwind 主题化（CSS 变量驱动）
-3. 搭建 Obsidian 语法转换管道（Wiki 链接 + Callout + 图片）
-4. 暗色模式（`prefers-color-scheme`）
-5. 草稿机制（`draft` frontmatter）
+### ✅ 已完成
+1. Tailwind 主题化（CSS 变量驱动 + 暗色模式）
+2. Obsidian 语法转换管道（Wiki 链接 + Callout + 图片）
+3. iCloud vault 内容源（含本地回退 + content-images 集成）
+4. 草稿机制（Robust Zod schema，兼容 Obsidian 多种格式）
+5. Tag 页面 + 反向链接
+6. 首页「最新文章」区块
+7. 404 页面 + robots.txt + Favicon
+8. RSS Feed + Sitemap + SEO/OG 标签
+9. Shiki 代码高亮
+10. About 页面 + Footer 联系/社交
+11. Cloudflare Pages 部署 + 域名（`369zen.com`）
+12. Projects placeholder「敬请期待」
+13. 阅读时间显示（CJK 中文友好）
+14. `npm run deploy` 一键构建 + 部署
 
-### 第二优先级（必备页面）
-6. Tag 页面 + 反向链接
-7. 首页「最新文章」区块
-8. 404 页面 + robots.txt + Favicon
-9. RSS Feed + Sitemap + SEO/OG 标签
-10. Shiki 代码高亮
-11. About 页面内容 + Footer 社交/联系图标
-
-### 第三优先级（部署与后续）
-12. Cloudflare Pages 部署 + 域名配置
-13. Cloudflare Web Analytics
-14. Projects placeholder「敬请期待」
-15. 阅读时间显示
+### 🔲 待做
+- [ ] Cloudflare Web Analytics（按需配置，零成本的 CF Pages 生态集成）

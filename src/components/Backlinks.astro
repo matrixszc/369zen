@@ -1,5 +1,5 @@
 ---
-import { getCollection } from "astro:content";
+import { getPublishedPosts } from "../lib/posts.ts";
 import { getBacklinks } from "../lib/backlinks.ts";
 
 interface Props {
@@ -7,7 +7,7 @@ interface Props {
 }
 
 const { slug } = Astro.props;
-const posts = await getCollection("blog");
+const posts = await getPublishedPosts();
 const links = getBacklinks(posts, slug);
 ---
 

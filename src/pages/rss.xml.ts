@@ -3,7 +3,7 @@ import { getCollection } from "astro:content";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../lib/site.ts";
 
 export async function GET(context: { site: string }) {
-  const posts = (await getCollection("blog", ({ data }) => !data.draft))
+  const posts = (await getCollection("blog", ({ data }) => !!data.title && !data.draft))
     .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
 
   return rss({

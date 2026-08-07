@@ -1,11 +1,34 @@
 /**
- * Copies non-markdown assets from src/content/blog/ into dist/blog/
+ * Copies non-markdown assets from the Obsidian iCloud vault into dist/blog/
  * so images stored alongside articles are served at the correct URL.
  */
 
 import fs from "node:fs";
 import path from "node:path";
+import os from "node:os";
 import type { AstroIntegration } from "astro";
+
+const iCloudVault = path.join(
+  os.homedir(),
+  "Library",
+  "Mobile Documents",
+  "iCloud~md~obsidian",
+  "Documents",
+  "369zen",
+);
+
+const localFallback = path.join("src", "content", "blog");
+
+function isReadable(dir: string): boolean {
+  try {
+    fs.readdirSync(dir);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const VAULT_DIR = isReadable(iCloudVault) ? iCloudVault : localFallback;
 
 const IMAGE_EXTS = new Set([
   ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif", ".mp4",
@@ -30,9 +53,8 @@ export function contentImages(): AstroIntegration {
     name: "content-images",
     hooks: {
       "astro:build:done": ({ dir }) => {
-        const src = path.join("src", "content", "blog");
         const dest = path.join(dir.pathname, "blog");
-        copyAssets(src, dest);
+        copyAssets(VAULT_DIR, dest);
       },
       "astro:server:setup": ({ server }) => {
         server.middlewares.use((req, _res, next) => {
@@ -40,7 +62,8 @@ export function contentImages(): AstroIntegration {
           if (url.pathname.startsWith("/blog/")) {
             const ext = path.extname(url.pathname).toLowerCase();
             if (IMAGE_EXTS.has(ext)) {
-              const filePath = path.join("src", "content", url.pathname);
+              const relativePath = url.pathname.slice("/blog/".length);
+              const filePath = path.join(VAULT_DIR, relativePath);
               if (fs.existsSync(filePath)) {
                 const content = fs.readFileSync(filePath);
                 const mime: Record<string, string> = {
