@@ -4,7 +4,7 @@
 
 ## 更新日志
 
-- **2026-08-07**：核心架构已变更 — 内容源从本地 git 仓库切换为 **iCloud Obsidian Vault**（含本地回退）。实现清单全部完成，移除旧的实现顺序章节。
+- **2026-08-07**：核心架构已变更 — 内容源从本地 git 仓库切换为 **Obsidian Vault**（通过 `OBSIDIAN_VAULT_PATH` 环境变量配置，跨平台兼容；未设置时回退到 `src/content/blog/`）。实现清单全部完成，移除旧的实现顺序章节。品牌统一：页面展示使用「数字禅」，`369zen` 为技术标识。
 
 ---
 
@@ -43,11 +43,13 @@
 **决策：** **纯英文** slug，URL 干净可读无乱码。
 
 ### 8. Obsidian Vault 与 Astro 仓库关系
-**决策：** 分离架构。Obsidian Vault 位于 iCloud（`~/Library/Mobile Documents/iCloud~md~obsidian/Documents/369zen`），Astro 项目是独立的本地 git 仓库。两者通过 glob loader 连接。
-- 内容（md + 图片）在 iCloud vault → 不进入 git，不泄露到 GitHub
+**决策：** 分离架构。Obsidian Vault 路径通过 `OBSIDIAN_VAULT_PATH` 环境变量配置，未设置时自动回退到 `src/content/blog/`。
+- 内容（md + 图片）在 Obsidian vault → 不进入 git，不泄露到 GitHub
 - Astro 项目代码（组件、布局、配置）→ git 正常管理
 - `content-images.ts` 集成在构建时把 vault 中的图片复制到 `dist/blog/`
-- 本地回退：iCloud 路径不可读时，自动使用 `src/content/blog/`（如 CI 环境）
+- `src/lib/vault.ts` 统一管理 vault 路径解析逻辑
+- 跨平台：macOS / Windows / Linux 均可通过环境变量指向各自的 Obsidian vault
+- 开源友好：clone 后无需任何配置即可运行（自动使用本地回退）
 
 ### 9. 转换管道
 **决策：** **现在就搭好**（Wiki 链接 + Callout + 图片的转换），不在用到时打断写作心流。
@@ -190,7 +192,7 @@
 ### ✅ 已完成
 1. Tailwind 主题化（CSS 变量驱动 + 暗色模式）
 2. Obsidian 语法转换管道（Wiki 链接 + Callout + 图片）
-3. iCloud vault 内容源（含本地回退 + content-images 集成）
+3. Obsidian vault 内容源（`OBSIDIAN_VAULT_PATH` 环境变量 + 本地回退，跨平台兼容）
 4. 草稿机制（Robust Zod schema，兼容 Obsidian 多种格式）
 5. Tag 页面 + 反向链接
 6. 首页「最新文章」区块
