@@ -1,16 +1,66 @@
-<header class="w-full border-b border-line">
-    <div class="max-w-5xl mx-auto px-6 py-5 flex justify-between items-center">
-        <div>
-            <h1 class="text-xl font-bold">数字禅</h1>
-            <!-- <p class="text-sm text-ink-2">数字禅 · 369 Zen</p> -->
-        </div>
+<header class="w-full border-b border-line bg-surface/95 backdrop-blur supports-backdrop-filter:bg-surface/80 sticky top-0 z-40">
+    <div class="max-w-5xl mx-auto px-4 py-4 sm:px-6 flex items-center justify-between">
+        <a href="/" class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-surface-2 text-sm font-semibold text-ink">
+                S
+            </div>
+            <div class="leading-tight">
+                <p class="text-base font-semibold tracking-tight">数字禅</p>
+                <p class="text-xs text-ink-2">369 Zen</p>
+            </div>
+        </a>
 
-        <nav class="flex items-center gap-8 text-sm font-medium">
-            <a href="/">首页</a>
-            <a href="/blog">博客</a>
-            <a href="/projects">项目</a>
-            <a href="/toolkit">资源</a>
-            <a href="/about">关于</a>
+        <button
+            id="menu-button"
+            type="button"
+            class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface-2 text-ink transition hover:bg-surface md:hidden"
+            aria-expanded="false"
+            aria-controls="mobile-nav-panel"
+            aria-label="打开菜单"
+        >
+            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 7h16" />
+                <path d="M4 12h16" />
+                <path d="M4 17h16" />
+            </svg>
+        </button>
+
+        <nav id="site-nav" class="hidden items-center gap-6 text-sm font-medium md:flex lg:gap-8">
+            <a href="/" class="rounded-full px-2 py-1 transition hover:text-ink-2">首页</a>
+            <a href="/blog" class="rounded-full px-2 py-1 transition hover:text-ink-2">博客</a>
+            <a href="/projects" class="rounded-full px-2 py-1 transition hover:text-ink-2">项目</a>
+            <a href="/toolkit" class="rounded-full px-2 py-1 transition hover:text-ink-2">资源</a>
+            <a href="/about" class="rounded-full px-2 py-1 transition hover:text-ink-2">关于</a>
+        </nav>
+    </div>
+
+    <div id="mobile-nav-panel" class="hidden border-t border-line bg-surface px-4 py-4 md:hidden">
+        <nav class="flex flex-col gap-2" aria-label="移动端导航">
+            <a href="/" class="rounded-2xl px-3 py-3 text-sm font-medium transition hover:bg-surface-2">首页</a>
+            <a href="/blog" class="rounded-2xl px-3 py-3 text-sm font-medium transition hover:bg-surface-2">博客</a>
+            <a href="/projects" class="rounded-2xl px-3 py-3 text-sm font-medium transition hover:bg-surface-2">项目</a>
+            <a href="/toolkit" class="rounded-2xl px-3 py-3 text-sm font-medium transition hover:bg-surface-2">资源</a>
+            <a href="/about" class="rounded-2xl px-3 py-3 text-sm font-medium transition hover:bg-surface-2">关于</a>
         </nav>
     </div>
 </header>
+
+<script>
+    const button = document.getElementById('menu-button');
+    const panel = document.getElementById('mobile-nav-panel');
+
+    if (button && panel) {
+        button.addEventListener('click', () => {
+            const expanded = button.getAttribute('aria-expanded') === 'true';
+            button.setAttribute('aria-expanded', String(!expanded));
+            panel.classList.toggle('hidden');
+        });
+
+        panel.querySelectorAll('a').forEach((link) => {
+            link.addEventListener('click', () => {
+                button.setAttribute('aria-expanded', 'false');
+                panel.classList.add('hidden');
+            });
+        });
+    }
+</script>
